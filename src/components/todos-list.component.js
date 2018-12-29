@@ -2,27 +2,23 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-const Todo = props => (
-    <tr>
-        <td>{props.todo.todo_description}</td>
-        <td>{props.todo.todo_responsible}</td>
-        <td>{props.todo.todo_priority}</td>
-        <td>
-            <Link to={"/edit/" + props.todo._id}>Edit</Link>
-        </td>
-    </tr>
-)
-
-
-
 export default class TodosList extends Component {
-
+    
     constructor (props) {
         super(props);
         this.state = { todos: [] };
     }
-
-    componentDidMount() {
+    
+    deleteTodo(id) {
+        axios.delete('http://localhost:4000/todos/' + id)
+            .then(response => {
+                this.getAll();
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+    }
+    getAll(){
         axios.get('http://localhost:4000/todos/')
             .then(response => {
                 this.setState({ todos: response.data });
@@ -31,9 +27,20 @@ export default class TodosList extends Component {
                 console.log(error);
             })
     }
-    todoList() {
+    componentDidMount() {
+        this.getAll();
+    }
+    todoList(context) {
         return this.state.todos.map(function (currentTodo, i) {
-            return <Todo todo={currentTodo} key={i} />;
+            return <tr key={i}>
+                <td>{currentTodo.todo_description}</td>
+                <td>{currentTodo.todo_responsible}</td>
+                <td>{currentTodo.todo_priority}</td>
+                <td>
+                    <Link to={"/edit/" + currentTodo._id} className="btn btn-warning">Edit</Link>
+                    <button onClick={() => context.deleteTodo(currentTodo._id)} className="btn btn-danger">Delete</button>
+                </td>
+            </tr>;
         })
     }
 
@@ -51,7 +58,7 @@ export default class TodosList extends Component {
                         </tr>
                     </thead>
                     <tbody>
-                        {this.todoList()}
+                        {this.todoList(this)}
                     </tbody>
                 </table>
             </div>
